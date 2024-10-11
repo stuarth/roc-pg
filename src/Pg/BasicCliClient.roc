@@ -297,7 +297,7 @@ readCmdResult = \initFields, stream ->
         }
 
     when msg is
-        ParseComplete | BindComplete | NoData ->
+        ParseComplete | BindComplete | NoData | NoticeResponse _ ->
             next state
 
         ParameterDescription parameters ->
