@@ -5,6 +5,7 @@ module [
     KeyData,
     Status,
     RowField,
+    ParameterField,
     Error,
 ]
 
@@ -35,7 +36,7 @@ Message : [
     NoticeResponse (List { code : U8, value : Str }),
     NoData,
     RowDescription (List RowField),
-    ParameterDescription,
+    ParameterDescription (List ParameterField),
     DataRow (List (List U8)),
     PortalSuspended,
     CommandComplete Str,
@@ -84,7 +85,7 @@ message = \msgType ->
             rowDescription
 
         't' ->
-            succeed ParameterDescription
+            parameterDescription
 
         'D' ->
             dataRow
@@ -352,6 +353,28 @@ rowField =
         typeModifier,
         formatCode,
     }
+
+ParameterField : {
+    dataTypeOid : I32,
+}
+
+parameterDescription : Decode Message _
+parameterDescription =
+    fieldCount <- await i16
+
+    if fieldCount == 0 then
+        succeed (ParameterDescription [])
+    else
+        fixedList
+            fieldCount
+            parameterField
+        |> map ParameterDescription
+
+parameterField : Decode ParameterField _
+parameterField =
+    dataTypeOid <- await i32
+
+    succeed { dataTypeOid }
 
 dataRow : Decode Message _
 dataRow =
